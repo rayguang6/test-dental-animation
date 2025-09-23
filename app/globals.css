@@ -5,22 +5,99 @@
   --foreground: #171717;
 }
 
-@theme inline {
+/* Theme variables */
+:root {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
+} */
+
+/* Mobile-first and fullscreen optimizations */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  /* Prevent zoom on double tap for mobile */
+  touch-action: manipulation;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  /* Prevent text selection on mobile */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  /* Prevent callout on iOS */
+  -webkit-touch-callout: none;
+  /* Prevent highlight color on tap */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Fullscreen optimizations */
+:fullscreen {
+  background: var(--background);
+}
+
+:-webkit-full-screen {
+  background: var(--background);
+}
+
+:-moz-full-screen {
+  background: var(--background);
+}
+
+:-ms-fullscreen {
+  background: var(--background);
+}
+
+/* Mobile viewport optimizations */
+@media (max-width: 768px) {
+  body {
+    /* Prevent horizontal scroll */
+    overflow-x: hidden;
+    /* Optimize for mobile performance */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Hide mobile browser UI when in fullscreen */
+  @media (display-mode: fullscreen) {
+    body {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+    }
+  }
+}
+
+/* Animation utilities */
+@keyframes fade-in {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out;
 }
