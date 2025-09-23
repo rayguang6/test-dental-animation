@@ -4,7 +4,7 @@ import { useState } from 'react';
 import SettingsPanel from './components/SettingsPanel';
 import IndustrySelection from './components/IndustrySelection';
 import MainGameScreen from './components/MainGameScreen';
-import { useFullscreen } from './hooks/useFullscreen';
+import GameControls from './components/GameControls';
 
 interface Industry {
   id: string;
@@ -18,7 +18,6 @@ export default function Home() {
   const [showSettings, setShowSettings] = useState(false);
   const [showIndustrySelection, setShowIndustrySelection] = useState(false);
   const [selectedIndustry, setSelectedIndustry] = useState<Industry | null>(null);
-  const { isFullscreen, isSupported, toggleFullscreen } = useFullscreen();
 
   const handleStartGame = () => {
     setShowIndustrySelection(true);
@@ -44,31 +43,8 @@ export default function Home() {
                  bg-[url('/images/business-empire-mobile.jpg')] 
                  md:bg-[url('/images/business-empire-desktop.jpg')]"
     >
-      {/* Top Right Controls */}
-      <div className="fixed top-4 right-4 z-50 flex gap-2">
-        {/* Settings Button */}
-        <button
-          onClick={() => setShowSettings(true)}
-          className="p-3 bg-black/50 backdrop-blur-sm rounded-full shadow-lg border border-white/20 hover:bg-black/70 transition-all duration-300"
-        >
-          <span className="text-lg">⚙️</span>
-        </button>
-
-        {/* Fullscreen Toggle Button */}
-        {isSupported && (
-          <button
-            onClick={toggleFullscreen}
-            className="p-3 bg-black/50 backdrop-blur-sm rounded-full shadow-lg border border-white/20 hover:bg-black/70 transition-all duration-300 flex items-center gap-2"
-          >
-            <span className="text-lg text-white">
-              {isFullscreen ? '📱' : '🔳'}
-            </span>
-            <span className="text-sm font-medium text-white hidden sm:inline">
-              {isFullscreen ? 'Exit' : 'Fullscreen'}
-            </span>
-          </button>
-        )}
-      </div>
+      {/* Game Controls */}
+      <GameControls onSettingsClick={() => setShowSettings(true)} />
 
       {/* Main Content */}
       <div className="flex flex-col items-center justify-center min-h-screen p-4 relative z-20">
