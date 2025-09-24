@@ -65,7 +65,7 @@ export default function EventCard({
               </div>
             )}
             <div className="mt-2 rounded-xl bg-white/85 text-slate-900 p-3 border border-white shadow-inner">
-              <p className="text-sm leading-snug">{description}</p>
+              <p className="text-sm leading-snug break-words">{description}</p>
             </div>
 
             <div className="mt-3 space-y-2">
@@ -73,10 +73,10 @@ export default function EventCard({
                 <button
                   key={c.id}
                   onClick={() => onSelect(c.id)}
-                  className="w-full rounded-xl border-2 border-white/85 text-white font-extrabold px-4 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,.5),0_3px_0_rgba(0,0,0,.35),0_8px_16px_rgba(0,0,0,.2)] active:translate-y-[1px]"
+                  className="w-full rounded-xl border-2 border-white/85 text-white font-extrabold px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,.5),0_3px_0_rgba(0,0,0,.35),0_8px_16px_rgba(0,0,0,.2)] active:translate-y-[1px] text-[12px] sm:text-[13px]"
                   style={{ backgroundColor: palette.choice as string }}
                 >
-                  {c.label}
+                  <span className="block truncate">{c.label}</span>
                 </button>
               ))}
             </div>
