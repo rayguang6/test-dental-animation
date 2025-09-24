@@ -41,10 +41,10 @@ function TopHUD() {
             <div className="flex items-center justify-center gap-2 bg-black/25 rounded-lg px-2 py-1">
               <span className="text-base sm:text-lg leading-none">{it.icon}</span>
               <div className="leading-tight text-white text-center">
-                <div className="font-extrabold tracking-tight tabular-nums text-base sm:text-lg" style={{ textShadow: '0 2px 0 rgba(0,0,0,.35)' }}>
+                <div className="font-extrabold tracking-tight tabular-nums text-sm sm:text-base" style={{ textShadow: '0 2px 0 rgba(0,0,0,.35)' }}>
                   {formatNumber(it.amount)}{it.suffix || ''}
                 </div>
-                <div className="text-[10px] sm:text-xs text-white/85 uppercase tracking-wide">{it.label}</div>
+                <div className="text-[9px] sm:text-[10px] text-white/80">{it.label}</div>
               </div>
             </div>
           </div>
