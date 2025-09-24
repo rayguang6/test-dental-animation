@@ -18,34 +18,37 @@ interface MainGameScreenProps {
 
 // Top HUD with 4 stats
 function TopHUD() {
+  const shortNumber = (n: number) => {
+    if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + 'B';
+    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+    if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
+    return String(n);
+  };
+  const formatNumber = (n: number) => (n < 100_000 ? n.toLocaleString() : shortNumber(n));
+
   const items = [
-    { key: 'cash', label: 'Cash', value: '$0', color: 'text-emerald-400', icon: '🪙' },
-    { key: 'revenue', label: 'Revenue', value: '$0', color: 'text-green-400', icon: '💹' },
-    { key: 'expenses', label: 'Expenses', value: '$0', color: 'text-red-400', icon: '💸' },
-    { key: 'reputation', label: 'Reputation', value: '0%', color: 'text-yellow-400', icon: '⭐' },
+    { key: 'cash', label: 'Cash', amount: 1250000, icon: '💵' },
+    { key: 'revenue', label: 'Revenue', amount: 56234, icon: '📈' },
+    { key: 'expenses', label: 'Expenses', amount: 980, icon: '📉' },
+    { key: 'reputation', label: 'Reputation', amount: 85, suffix: '%', icon: '⭐' },
   ];
 
   return (
-    <div className="w-full">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="bg-gradient-to-r from-gray-900 to-gray-800 border border-gray-700 rounded-2xl p-2 sm:p-3">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-            {items.map((it) => (
-              <div
-                key={it.key}
-                className="flex items-center gap-2 sm:gap-3 bg-gray-800/80 border border-gray-700 rounded-xl px-3 py-2"
-              >
-                <div className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg bg-gray-900 border border-gray-700">
-                  <span className="text-base sm:text-lg">{it.icon}</span>
+    <div className="w-full px-2 sm:px-4 lg:px-8">
+      <div className="flex items-stretch justify-around gap-1 sm:gap-2">
+        {items.map((it) => (
+          <div key={it.key} className="flex-1 min-w-0">
+            <div className="flex items-center justify-center gap-2 bg-black/25 rounded-lg px-2 py-1">
+              <span className="text-base sm:text-lg leading-none">{it.icon}</span>
+              <div className="leading-tight text-white text-center">
+                <div className="font-extrabold tracking-tight tabular-nums text-base sm:text-lg" style={{ textShadow: '0 2px 0 rgba(0,0,0,.35)' }}>
+                  {formatNumber(it.amount)}{it.suffix || ''}
                 </div>
-                <div className="leading-tight">
-                  <div className="text-[10px] sm:text-xs text-gray-400">{it.label}</div>
-                  <div className={`text-sm sm:text-base font-semibold ${it.color}`}>{it.value}</div>
-                </div>
+                <div className="text-[10px] sm:text-xs text-white/85 uppercase tracking-wide">{it.label}</div>
               </div>
-            ))}
+            </div>
           </div>
-        </div>
+        ))}
       </div>
     </div>
   );
@@ -286,7 +289,7 @@ export default function MainGameScreen({ selectedIndustry, onBack }: MainGameScr
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-white/10 text-purple-100"
                   >
                     <span className="text-lg">🎵</span>
-                    <span>Game Music</span>
+                    <span>Game Music(TODO)</span>
                   </button>
                   <div className="my-1 h-px bg-white/10" />
                   <button
