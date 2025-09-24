@@ -54,41 +54,19 @@ function TopHUD() {
   );
 }
 
-// Removed multi-step strip; we'll use a single stage below
-
-// Upgrade Section Component
-function UpgradeSection() {
-  const upgrades = [
-    { id: 'equipment', name: 'Equipment', icon: '🔧', cost: 100, level: 1 },
-    { id: 'staff', name: 'Staff', icon: '👨‍⚕️', cost: 200, level: 1 },
-    { id: 'facility', name: 'Facility', icon: '🏥', cost: 500, level: 1 },
-    { id: 'marketing', name: 'Marketing', icon: '📢', cost: 300, level: 1 },
-  ];
-
+// Reusable Action Tile for upgrades/actions
+function ActionTile({ icon, title, subtitle, cost, color = 'from-purple-400 to-violet-500' }: { icon: string; title: string; subtitle?: string; cost?: string; color?: string; }) {
   return (
-    <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-6 border border-gray-700">
-      <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-        <span className="text-2xl">⬆️</span>
-        Upgrades
-      </h3>
-      <div className="grid grid-cols-2 gap-3">
-        {upgrades.map((upgrade) => (
-          <button
-            key={upgrade.id}
-            className="bg-gray-800 hover:bg-gray-700 rounded-lg p-3 border border-gray-600 hover:border-gray-500 transition-all duration-300 group"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">{upgrade.icon}</span>
-              <div className="flex-1 text-left">
-                <div className="font-medium text-white text-sm">{upgrade.name}</div>
-                <div className="text-xs text-gray-400">Level {upgrade.level}</div>
-                <div className="text-xs text-green-400">${upgrade.cost}</div>
-              </div>
-            </div>
-          </button>
-        ))}
+    <button className="rounded-xl bg-black/25 border border-white/10 p-3 text-left hover:bg-white/10 transition-colors active:scale-[0.98]">
+      <div className="flex items-center gap-3">
+        <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${color} flex items-center justify-center shadow-[0_2px_0_rgba(0,0,0,.4)] text-xl`}>{icon}</div>
+        <div className="flex-1">
+          <div className="text-white font-semibold text-sm">{title}</div>
+          {subtitle && <div className="text-[11px] text-white/70">{subtitle}</div>}
+        </div>
+        {cost && <div className="text-amber-200 font-extrabold text-sm tabular-nums">{cost}</div>}
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -188,11 +166,9 @@ function ClinicStage() {
   }, []);
 
   return (
-    <div className="bg-gradient-to-b from-gray-900 to-gray-800 rounded-2xl border border-gray-700 p-3 sm:p-4">
-      <div className="text-white/90 text-sm font-semibold mb-2">Clinic</div>
-      <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-800 to-gray-900 border border-gray-700">
-        {/* Floor */}
-        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gray-800/70 border-t border-gray-700" />
+    <div className="rounded-2xl p-3 sm:p-4 bg-gradient-to-br from-orange-400 via-amber-400 to-yellow-300 border-2 border-yellow-300 shadow-[inset_0_0_0_3px_rgba(255,255,255,0.35),inset_0_-6px_0_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.35)]">
+      <div className="text-yellow-950 text-sm font-extrabold mb-2 tracking-wide drop-shadow">Clinic</div>
+      <div className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden">
 
         {/* Waiting bench area (left) */}
         <div className="absolute left-[4%] top-[8%] bottom-[8%] w-[28%] rounded-xl bg-gray-900/60 border border-gray-800 p-2">
@@ -328,26 +304,28 @@ export default function MainGameScreen({ selectedIndustry, onBack }: MainGameScr
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-40">
         <div className="grid grid-cols-1 gap-6">
           <ClinicStage />
-          <UpgradeSection />
         </div>
         {/* Bottom Tab Content */}
         <div className="mt-6">
           {activeTab === 'people' && (
-            <div className="rounded-2xl p-4 bg-gradient-to-b from-indigo-900/60 to-slate-900/60 border border-indigo-700/60">
-              <div className="text-white font-extrabold mb-2">Team</div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {["Dentist A","Dentist B","Assistant","Reception"].map((role) => (
-                  <div key={role} className="rounded-xl bg-black/25 border border-white/10 p-3 text-white/90">
-                    <div className="text-sm font-semibold">{role}</div>
-                    <div className="text-[11px] text-white/70">Lv. 1 • Speed +0%</div>
-                  </div>
-                ))}
+            <div className="rounded-2xl p-4 bg-gradient-to-b from-indigo-900/60 to-slate-900/60 border border-indigo-700/60 shadow-[inset_0_1px_0_rgba(255,255,255,.06),0_8px_20px_rgba(30,41,59,.4)]">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-400 to-fuchsia-500 flex items-center justify-center">👥</div>
+                <div className="text-white font-extrabold">Team</div>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <ActionTile icon="🧑‍⚕️" title="Hire Dentist" subtitle="Base salary $200/day" cost="$200" color="from-pink-400 to-fuchsia-500" />
+                <ActionTile icon="🧑‍💼" title="Hire Assistant" subtitle="Boost speed +5%" cost="$120" color="from-rose-400 to-orange-300" />
+                <ActionTile icon="📚" title="Training" subtitle="Skill +1 level" cost="$80" color="from-sky-400 to-blue-500" />
               </div>
             </div>
           )}
           {activeTab === 'finance' && (
-            <div className="rounded-2xl p-4 bg-gradient-to-b from-amber-900/40 to-orange-900/40 border border-amber-700/60">
-              <div className="text-white font-extrabold mb-2">Finance</div>
+            <div className="rounded-2xl p-4 bg-gradient-to-b from-amber-900/40 to-orange-900/40 border border-amber-700/60 shadow-[inset_0_1px_0_rgba(255,255,255,.06),0_8px_20px_rgba(146,64,14,.35)]">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-300 to-orange-400 flex items-center justify-center">💰</div>
+                <div className="text-white font-extrabold">Finance</div>
+              </div>
               <div className="grid grid-cols-2 gap-3 text-white/90">
                 <div className="rounded-lg bg-black/25 border border-white/10 p-3">
                   <div className="text-[11px] text-white/70">Cash</div>
@@ -358,21 +336,31 @@ export default function MainGameScreen({ selectedIndustry, onBack }: MainGameScr
                   <div className="text-lg font-extrabold tabular-nums">$ 56,234</div>
                 </div>
               </div>
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <ActionTile icon="🏷️" title="Adjust Pricing" subtitle="Set service prices" color="from-yellow-300 to-orange-400" />
+                <ActionTile icon="📊" title="Cost Cutting" subtitle="Reduce expenses" color="from-amber-400 to-rose-400" />
+              </div>
             </div>
           )}
           {activeTab === 'assets' && (
-            <div className="rounded-2xl p-4 bg-gradient-to-b from-sky-900/50 to-blue-900/50 border border-sky-700/60 text-white/90">
-              <div className="text-white font-extrabold mb-2">Assets</div>
+            <div className="rounded-2xl p-4 bg-gradient-to-b from-sky-900/50 to-blue-900/50 border border-sky-700/60 text-white/90 shadow-[inset_0_1px_0_rgba(255,255,255,.06),0_8px_20px_rgba(2,132,199,.35)]">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-sky-300 to-blue-400 flex items-center justify-center">🏭</div>
+                <div className="text-white font-extrabold">Assets</div>
+              </div>
               <div className="grid grid-cols-3 gap-3">
-                {["Chairs 3","Tools Lv.1","Rooms 1"].map((t) => (
-                  <div key={t} className="rounded-lg bg-black/25 border border-white/10 p-3 text-center font-semibold">{t}</div>
-                ))}
+                <ActionTile icon="🪑" title="Chair Slots" subtitle="+1 chair" cost="$500" color="from-sky-300 to-blue-400" />
+                <ActionTile icon="🛠️" title="Tools" subtitle="Lv.1 → Lv.2" cost="$300" color="from-indigo-400 to-violet-500" />
+                <ActionTile icon="🏥" title="Room" subtitle="Add 1 room" cost="$800" color="from-cyan-400 to-blue-500" />
               </div>
             </div>
           )}
           {activeTab === 'sales' && (
-            <div className="rounded-2xl p-4 bg-gradient-to-b from-emerald-900/50 to-teal-900/50 border border-emerald-700/60 text-white/90">
-              <div className="text-white font-extrabold mb-2">Marketing</div>
+            <div className="rounded-2xl p-4 bg-gradient-to-b from-emerald-900/50 to-teal-900/50 border border-emerald-700/60 text-white/90 shadow-[inset_0_1px_0_rgba(255,255,255,.06),0_8px_20px_rgba(16,185,129,.35)]">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-300 to-lime-400 flex items-center justify-center">📢</div>
+                <div className="text-white font-extrabold">Marketing</div>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-lg bg-black/25 border border-white/10 p-3">
                   <div className="text-[11px] text-white/70">New Patients</div>
@@ -382,6 +370,11 @@ export default function MainGameScreen({ selectedIndustry, onBack }: MainGameScr
                   <div className="text-[11px] text-white/70">Conversion</div>
                   <div className="text-lg font-extrabold tabular-nums">48%</div>
                 </div>
+              </div>
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <ActionTile icon="📣" title="Run Campaign" subtitle="7 days" cost="$200" color="from-emerald-300 to-lime-400" />
+                <ActionTile icon="🪧" title="Buy Ads" subtitle="Local platform" cost="$150" color="from-teal-300 to-cyan-400" />
+                <ActionTile icon="🎁" title="Promo Packs" subtitle="New patient bundle" cost="$100" color="from-green-300 to-emerald-400" />
               </div>
             </div>
           )}
