@@ -245,6 +245,7 @@ function ClinicStage() {
 export default function MainGameScreen({ selectedIndustry, onBack }: MainGameScreenProps) {
   const { isFullscreen, isSupported, toggleFullscreen } = useFullscreen();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'people' | 'finance' | 'assets' | 'sales'>('finance');
   const week = 1;
   const phaseLabel = 'Phase 1 - Rat Race';
   const getDifficultyColor = (difficulty: string) => {
@@ -324,10 +325,66 @@ export default function MainGameScreen({ selectedIndustry, onBack }: MainGameScr
       
 
       {/* Main Content: Dental game elements */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-28">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-40">
         <div className="grid grid-cols-1 gap-6">
           <ClinicStage />
           <UpgradeSection />
+        </div>
+        {/* Bottom Tab Content */}
+        <div className="mt-6">
+          {activeTab === 'people' && (
+            <div className="rounded-2xl p-4 bg-gradient-to-b from-indigo-900/60 to-slate-900/60 border border-indigo-700/60">
+              <div className="text-white font-extrabold mb-2">Team</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {["Dentist A","Dentist B","Assistant","Reception"].map((role) => (
+                  <div key={role} className="rounded-xl bg-black/25 border border-white/10 p-3 text-white/90">
+                    <div className="text-sm font-semibold">{role}</div>
+                    <div className="text-[11px] text-white/70">Lv. 1 • Speed +0%</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {activeTab === 'finance' && (
+            <div className="rounded-2xl p-4 bg-gradient-to-b from-amber-900/40 to-orange-900/40 border border-amber-700/60">
+              <div className="text-white font-extrabold mb-2">Finance</div>
+              <div className="grid grid-cols-2 gap-3 text-white/90">
+                <div className="rounded-lg bg-black/25 border border-white/10 p-3">
+                  <div className="text-[11px] text-white/70">Cash</div>
+                  <div className="text-lg font-extrabold tabular-nums">$ 1.2M</div>
+                </div>
+                <div className="rounded-lg bg-black/25 border border-white/10 p-3">
+                  <div className="text-[11px] text-white/70">Daily Revenue</div>
+                  <div className="text-lg font-extrabold tabular-nums">$ 56,234</div>
+                </div>
+              </div>
+            </div>
+          )}
+          {activeTab === 'assets' && (
+            <div className="rounded-2xl p-4 bg-gradient-to-b from-sky-900/50 to-blue-900/50 border border-sky-700/60 text-white/90">
+              <div className="text-white font-extrabold mb-2">Assets</div>
+              <div className="grid grid-cols-3 gap-3">
+                {["Chairs 3","Tools Lv.1","Rooms 1"].map((t) => (
+                  <div key={t} className="rounded-lg bg-black/25 border border-white/10 p-3 text-center font-semibold">{t}</div>
+                ))}
+              </div>
+            </div>
+          )}
+          {activeTab === 'sales' && (
+            <div className="rounded-2xl p-4 bg-gradient-to-b from-emerald-900/50 to-teal-900/50 border border-emerald-700/60 text-white/90">
+              <div className="text-white font-extrabold mb-2">Marketing</div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg bg-black/25 border border-white/10 p-3">
+                  <div className="text-[11px] text-white/70">New Patients</div>
+                  <div className="text-lg font-extrabold tabular-nums">+32/day</div>
+                </div>
+                <div className="rounded-lg bg-black/25 border border-white/10 p-3">
+                  <div className="text-[11px] text-white/70">Conversion</div>
+                  <div className="text-lg font-extrabold tabular-nums">48%</div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -335,26 +392,40 @@ export default function MainGameScreen({ selectedIndustry, onBack }: MainGameScr
 
       {/* Bottom Dock - 人财物销 */}
       <nav className="fixed bottom-0 left-0 right-0 z-40">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-safe">
-          <div className="mb-3"></div>
-          <div className="grid grid-cols-4 gap-2 bg-gray-900/90 backdrop-blur border-t border-gray-700 rounded-t-2xl p-2">
-            {[
-              { key: 'people', label: '人', sub: 'Team', icon: '👥' },
-              { key: 'finance', label: '财', sub: 'Finance', icon: '💰' },
-              { key: 'assets', label: '物', sub: 'Assets', icon: '🏭' },
-              { key: 'sales', label: '销', sub: 'Sales', icon: '📈' },
-            ].map((item) => (
-              <button
-                key={item.key}
-                className="flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white transition-colors"
-              >
-                <span className="text-xl">{item.icon}</span>
-                <div className="flex items-center gap-1">
-                  <span className="text-sm font-semibold">{item.label}</span>
-                  <span className="text-[10px] text-gray-400">{item.sub}</span>
-                </div>
-              </button>
-            ))}
+        <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 pb-safe">
+          <div className="mb-2"></div>
+          <div className="relative rounded-t-2xl border-t border-white/10 bg-gradient-to-t from-[#1b1f3a]/95 to-[#2b2f5a]/90 shadow-[0_-8px_24px_rgba(0,0,0,.35)] p-2">
+            <div className="grid grid-cols-4 gap-1">
+              {(() => {
+                const items = [
+                  { key: 'people', label: '人', sub: 'Team', icon: '👥', color: 'from-pink-400 to-fuchsia-500' },
+                  { key: 'finance', label: '财', sub: 'Finance', icon: '💰', color: 'from-amber-300 to-orange-400' },
+                  { key: 'assets', label: '物', sub: 'Assets', icon: '🏭', color: 'from-sky-300 to-blue-400' },
+                  { key: 'sales', label: '销', sub: 'Marketing', icon: '📢', color: 'from-emerald-300 to-lime-400' },
+                ];
+                return items.map((item) => {
+                  const isActive = item.key === activeTab;
+                  return (
+                    <button
+                      key={item.key}
+                      onClick={() => setActiveTab(item.key as typeof activeTab)}
+                      className={`relative flex flex-col items-center gap-1 py-2 rounded-xl text-white/90 transition-transform active:scale-95 ${isActive ? 'bg-white/8' : 'hover:bg-white/5'}`}
+                    >
+                      <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br ${item.color} flex items-center justify-center shadow-[0_2px_0_rgba(0,0,0,.4)]`}> 
+                        <span className="text-lg">{item.icon}</span>
+                      </div>
+                      <div className="flex items-center gap-1 leading-none">
+                        <span className={`text-sm font-extrabold ${isActive ? 'text-white' : 'text-white/90'}`}>{item.label}</span>
+                        <span className="text-[10px] text-white/70">{item.sub}</span>
+                      </div>
+                      {isActive && (
+                        <div className="absolute -top-2 inset-x-6 h-1 rounded-full bg-gradient-to-r from-yellow-300 to-amber-400 shadow-[0_0_10px_rgba(251,191,36,.8)]" />
+                      )}
+                    </button>
+                  );
+                });
+              })()}
+            </div>
           </div>
         </div>
       </nav>
