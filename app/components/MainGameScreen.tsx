@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import GameControls from './GameControls';
 
 interface Industry {
   id: string;
@@ -15,30 +16,42 @@ interface MainGameScreenProps {
   onBack: () => void;
 }
 
-// Game Stats Component
-function GameStats() {
+// Top HUD with 4 stats
+function TopHUD() {
+  const items = [
+    { key: 'cash', label: 'Cash', value: '$0', color: 'text-emerald-400', icon: '🪙' },
+    { key: 'revenue', label: 'Revenue', value: '$0', color: 'text-green-400', icon: '💹' },
+    { key: 'expenses', label: 'Expenses', value: '$0', color: 'text-red-400', icon: '💸' },
+    { key: 'reputation', label: 'Reputation', value: '0%', color: 'text-yellow-400', icon: '⭐' },
+  ];
+
   return (
-    <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-xl p-4 border border-gray-700">
-      <div className="grid grid-cols-3 gap-4">
-        <div className="text-center">
-          <div className="text-2xl mb-1">💰</div>
-          <div className="text-xs text-gray-400 mb-1">Revenue</div>
-          <div className="text-lg font-bold text-green-400">$0</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl mb-1">👥</div>
-          <div className="text-xs text-gray-400 mb-1">Customers</div>
-          <div className="text-lg font-bold text-blue-400">0</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl mb-1">⭐</div>
-          <div className="text-xs text-gray-400 mb-1">Reputation</div>
-          <div className="text-lg font-bold text-yellow-400">0%</div>
+    <div className="w-full">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="bg-gradient-to-r from-gray-900 to-gray-800 border border-gray-700 rounded-2xl p-2 sm:p-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+            {items.map((it) => (
+              <div
+                key={it.key}
+                className="flex items-center gap-2 sm:gap-3 bg-gray-800/80 border border-gray-700 rounded-xl px-3 py-2"
+              >
+                <div className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg bg-gray-900 border border-gray-700">
+                  <span className="text-base sm:text-lg">{it.icon}</span>
+                </div>
+                <div className="leading-tight">
+                  <div className="text-[10px] sm:text-xs text-gray-400">{it.label}</div>
+                  <div className={`text-sm sm:text-base font-semibold ${it.color}`}>{it.value}</div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
+// Removed multi-step strip; we'll use a single stage below
 
 // Upgrade Section Component
 function UpgradeSection() {
@@ -118,6 +131,113 @@ function TreatmentQueue() {
   );
 }
 
+// Simple Visualization: Waiting Area -> Treatment Rooms
+function ClinicStage() {
+  const patientEmojis = ['🧑', '👩', '👨', '🧑‍🦱', '🧒', '👵', '👴'];
+  const chairEmoji = '🪑';
+  const toothEmoji = '🦷';
+
+  const [waiting, setWaiting] = useState<string[]>(() =>
+    Array.from({ length: 6 }, (_, i) => patientEmojis[i % patientEmojis.length])
+  );
+  const [treating, setTreating] = useState<Array<{ id: number; emoji: string; progress: number }>>([]);
+  const idRef = useRef(0);
+
+  // Periodically assign from waiting to treatment if a chair available
+  const maxChairs = 3;
+
+  useEffect(() => {
+    const assignTimer = setInterval(() => {
+      setWaiting((curr) => {
+        if (curr.length === 0) return curr;
+        setTreating((currTreat) => {
+          if (currTreat.length >= maxChairs) return currTreat;
+          const [next, ...rest] = curr;
+          const id = ++idRef.current;
+          return [...currTreat, { id, emoji: next, progress: 0 }];
+        });
+        return curr.slice(1);
+      });
+    }, 1200);
+    return () => clearInterval(assignTimer);
+  }, []);
+
+  // Progress treatment and free chairs when complete
+  useEffect(() => {
+    const progTimer = setInterval(() => {
+      setTreating((curr) =>
+        curr
+          .map((t) => ({ ...t, progress: Math.min(100, t.progress + 8) }))
+          .filter((t) => t.progress < 100)
+      );
+    }, 300);
+    return () => clearInterval(progTimer);
+  }, []);
+
+  // Refill waiting slowly so there is motion
+  useEffect(() => {
+    const refill = setInterval(() => {
+      setWaiting((curr) =>
+        curr.length < 10 ? [...curr, patientEmojis[(curr.length + Date.now()) % patientEmojis.length]] : curr
+      );
+    }, 2500);
+    return () => clearInterval(refill);
+  }, []);
+
+  return (
+    <div className="bg-gradient-to-b from-gray-900 to-gray-800 rounded-2xl border border-gray-700 p-3 sm:p-4">
+      <div className="text-white/90 text-sm font-semibold mb-2">Clinic</div>
+      <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-800 to-gray-900 border border-gray-700">
+        {/* Floor */}
+        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gray-800/70 border-t border-gray-700" />
+
+        {/* Waiting bench area (left) */}
+        <div className="absolute left-[4%] top-[8%] bottom-[8%] w-[28%] rounded-xl bg-gray-900/60 border border-gray-800 p-2">
+          <div className="text-[11px] text-gray-300 mb-1">Waiting • {waiting.length}</div>
+          <div className="flex flex-col gap-2">
+            {waiting.slice(0, 6).map((w, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <div className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-800 border border-gray-700 text-base">
+                  {w}
+                </div>
+                <div className="flex-1 h-1.5 rounded bg-gray-800 overflow-hidden">
+                  <div className="h-full w-1/3 bg-emerald-500" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Treatment chairs (right) */}
+        <div className="absolute right-[4%] top-[8%] bottom-[8%] w-[60%] grid grid-cols-3 gap-3">
+          {Array.from({ length: maxChairs }).map((_, i) => {
+            const seat = treating[i];
+            return (
+              <div key={i} className="relative bg-gray-900/60 border border-gray-800 rounded-xl p-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-800 border border-gray-700 text-xl">
+                    {chairEmoji}
+                  </div>
+                  <div className={`w-8 h-8 flex items-center justify-center rounded-full border ${seat ? 'bg-emerald-900/30 border-emerald-700' : 'bg-gray-800 border-gray-700'} text-lg`}>
+                    {seat ? seat.emoji : toothEmoji}
+                  </div>
+                </div>
+                <div className="mt-2 h-1.5 rounded bg-gray-800 overflow-hidden">
+                  <div
+                    className="h-full bg-emerald-500 transition-all"
+                    style={{ width: `${seat ? seat.progress : 0}%` }}
+                  />
+                </div>
+                <div className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-emerald-500/80 border border-emerald-300 animate-pulse" />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Main Game Screen
 export default function MainGameScreen({ selectedIndustry, onBack }: MainGameScreenProps) {
   const getDifficultyColor = (difficulty: string) => {
@@ -156,34 +276,53 @@ export default function MainGameScreen({ selectedIndustry, onBack }: MainGameScr
               </div>
             </div>
 
-            {/* Game Stats */}
-            <div className="hidden md:block">
-              <GameStats />
-            </div>
+            {/* Spacer on desktop for balance */}
+            <div className="hidden md:block w-16" />
           </div>
         </div>
       </div>
 
-      {/* Mobile Stats */}
-      <div className="md:hidden p-4">
-        <GameStats />
-      </div>
+      {/* Unified Top HUD */}
+      <div className="py-3"><TopHUD /></div>
+
+      
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Upgrades */}
-          <div className="lg:col-span-2">
-            <UpgradeSection />
-          </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-28">
+        <div className="grid grid-cols-1 gap-6">
+          <ClinicStage />
+          <UpgradeSection />
+        </div>
+      </div>
 
-          {/* Right Column - Treatment Queue */}
-          <div className="lg:col-span-1">
-            <TreatmentQueue />
+      {/* Floating Controls (Settings, Fullscreen) */}
+      <GameControls onSettingsClick={() => {}} />
+
+      {/* Bottom Dock - 人财物销 */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-safe">
+          <div className="mb-3"></div>
+          <div className="grid grid-cols-4 gap-2 bg-gray-900/90 backdrop-blur border-t border-gray-700 rounded-t-2xl p-2">
+            {[
+              { key: 'people', label: '人', sub: 'Team', icon: '👥' },
+              { key: 'finance', label: '财', sub: 'Finance', icon: '💰' },
+              { key: 'assets', label: '物', sub: 'Assets', icon: '🏭' },
+              { key: 'sales', label: '销', sub: 'Sales', icon: '📈' },
+            ].map((item) => (
+              <button
+                key={item.key}
+                className="flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-gray-800 text-gray-300 hover:text-white transition-colors"
+              >
+                <span className="text-xl">{item.icon}</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-sm font-semibold">{item.label}</span>
+                  <span className="text-[10px] text-gray-400">{item.sub}</span>
+                </div>
+              </button>
+            ))}
           </div>
         </div>
-
-      </div>
+      </nav>
     </div>
   );
 }
