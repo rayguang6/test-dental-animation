@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import GameControls from './GameControls';
+import { useFullscreen } from '../hooks/useFullscreen';
 
 interface Industry {
   id: string;
@@ -240,6 +240,10 @@ function ClinicStage() {
 
 // Main Game Screen
 export default function MainGameScreen({ selectedIndustry, onBack }: MainGameScreenProps) {
+  const { isFullscreen, isSupported, toggleFullscreen } = useFullscreen();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const week = 1;
+  const phaseLabel = 'Phase 1 - Rat Race';
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'Easy': return 'bg-green-500';
@@ -250,34 +254,63 @@ export default function MainGameScreen({ selectedIndustry, onBack }: MainGameScr
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 to-gray-800">
+    <div className="min-h-screen w-full bg-gradient-to-b from-[#352A91] via-[#434CAF] to-[#352A91]">
       {/* Header */}
-      <div className="bg-gray-900 border-b border-gray-700">
+      <div className="bg-gray-900 border-b border-gray-700 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Back Button */}
-            <button
-              onClick={onBack}
-              className="flex items-center gap-2 px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
-            >
-              <span className="text-lg">←</span>
-              <span className="font-medium">Back</span>
-            </button>
-
-            {/* Industry Info */}
-            <div className="flex items-center gap-4">
-              <div className="text-2xl">{selectedIndustry.emoji}</div>
-              <div>
-                <h1 className="text-xl font-bold text-white">{selectedIndustry.name}</h1>
-                <div className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${getDifficultyColor(selectedIndustry.difficulty)}`}></div>
-                  <span className="text-sm text-gray-400">{selectedIndustry.difficulty} Difficulty</span>
+            {/* Single Menu Button */}
+            <div className="relative">
+              <button
+                onClick={() => setMenuOpen((v) => !v)}
+                className="ui-chip px-3 py-2 flex items-center gap-2"
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+              >
+                <span className="text-white">☰</span>
+                <span className="text-white text-sm font-semibold">Menu</span>
+              </button>
+              {menuOpen && (
+                <div className="absolute left-0 mt-2 w-56 ui-card p-2 z-50">
+                  {isSupported && (
+                    <button
+                      onClick={() => { toggleFullscreen(); setMenuOpen(false); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-white/10 text-purple-100"
+                    >
+                      <span className="text-lg">⛶</span>
+                      <span>{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</span>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => { /* music toggle placeholder */ setMenuOpen(false); }}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-white/10 text-purple-100"
+                  >
+                    <span className="text-lg">🎵</span>
+                    <span>Game Music</span>
+                  </button>
+                  <div className="my-1 h-px bg-white/10" />
+                  <button
+                    onClick={() => { onBack(); setMenuOpen(false); }}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-white/10 text-purple-100"
+                  >
+                    <span className="text-lg">🚪</span>
+                    <span>Exit Game</span>
+                  </button>
                 </div>
-              </div>
+              )}
             </div>
 
-            {/* Spacer on desktop for balance */}
-            <div className="hidden md:block w-16" />
+            {/* Center Title */}
+            <div className="text-center">
+              <div className="text-xl font-extrabold text-white tracking-wide">Dental</div>
+              <div className="text-xs text-purple-200">{phaseLabel}</div>
+            </div>
+
+            {/* Right Date/Week */}
+            <div className="text-right">
+              <div className="text-sm text-white font-semibold">Week {week}</div>
+              <div className="text-[10px] text-purple-200">{selectedIndustry.name}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -287,7 +320,7 @@ export default function MainGameScreen({ selectedIndustry, onBack }: MainGameScr
 
       
 
-      {/* Main Content */}
+      {/* Main Content: Dental game elements */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-28">
         <div className="grid grid-cols-1 gap-6">
           <ClinicStage />
@@ -295,8 +328,7 @@ export default function MainGameScreen({ selectedIndustry, onBack }: MainGameScr
         </div>
       </div>
 
-      {/* Floating Controls (Settings, Fullscreen) */}
-      <GameControls onSettingsClick={() => {}} />
+      {/* Floating Controls removed in favor of Menu button */}
 
       {/* Bottom Dock - 人财物销 */}
       <nav className="fixed bottom-0 left-0 right-0 z-40">
