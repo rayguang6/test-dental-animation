@@ -229,9 +229,9 @@ export default function MainGameScreen({ selectedIndustry, onBack }: MainGameScr
   const [eventData, setEventData] = useState<{ variant: 'opportunity' | 'problem'; title: string; message?: string; description: string; choices: { id: string; label: string }[] } | null>(null);
   // Background music state
   const [musicEnabled, setMusicEnabled] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
+    if (typeof window === 'undefined') return true;
     const saved = window.localStorage.getItem('bgm_enabled');
-    return saved ? saved === 'true' : false;
+    return saved ? saved === 'true' : true; // default ON if no saved value
   });
   const [musicVolume, setMusicVolume] = useState<number>(() => {
     if (typeof window === 'undefined') return 0.4;
@@ -294,6 +294,24 @@ export default function MainGameScreen({ selectedIndustry, onBack }: MainGameScr
       audioRef.current.pause();
     }
   }, [musicEnabled]);
+
+  // Try auto-start on first user interaction (click/keydown) to satisfy autoplay policies
+  useEffect(() => {
+    const tryStart = () => {
+      if (musicEnabled && audioRef.current) {
+        audioRef.current.volume = musicVolume;
+        audioRef.current.play().catch(() => {});
+      }
+      window.removeEventListener('pointerdown', tryStart);
+      window.removeEventListener('keydown', tryStart);
+    };
+    window.addEventListener('pointerdown', tryStart);
+    window.addEventListener('keydown', tryStart);
+    return () => {
+      window.removeEventListener('pointerdown', tryStart);
+      window.removeEventListener('keydown', tryStart);
+    };
+  }, [musicEnabled, musicVolume]);
 
   // React to volume changes
   useEffect(() => {
