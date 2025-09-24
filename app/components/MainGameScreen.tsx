@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFullscreen } from '../hooks/useFullscreen';
+import EventCard from './EventCard';
 
 interface Industry {
   id: string;
@@ -15,6 +16,8 @@ interface MainGameScreenProps {
   selectedIndustry: Industry;
   onBack: () => void;
 }
+// EventCard now in its own file
+
 
 // Top HUD with 4 stats
 function TopHUD() {
@@ -222,6 +225,21 @@ export default function MainGameScreen({ selectedIndustry, onBack }: MainGameScr
   const { isFullscreen, isSupported, toggleFullscreen } = useFullscreen();
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'people' | 'finance' | 'assets' | 'sales'>('finance');
+  const [eventOpen, setEventOpen] = useState(false);
+  const [eventData, setEventData] = useState<{ variant: 'opportunity' | 'problem'; title: string; message?: string; description: string; choices: { id: string; label: string }[] } | null>(null);
+  // Background music state
+  const [musicEnabled, setMusicEnabled] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    const saved = window.localStorage.getItem('bgm_enabled');
+    return saved ? saved === 'true' : false;
+  });
+  const [musicVolume, setMusicVolume] = useState<number>(() => {
+    if (typeof window === 'undefined') return 0.4;
+    const saved = window.localStorage.getItem('bgm_volume');
+    const v = saved ? Number(saved) : 0.4;
+    return Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0.4;
+  });
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const week = 1;
   const phaseLabel = 'Phase 1 - Rat Race';
   const getDifficultyColor = (difficulty: string) => {
@@ -233,8 +251,87 @@ export default function MainGameScreen({ selectedIndustry, onBack }: MainGameScr
     }
   };
 
+  // Prototype: trigger a random event every 5s
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const variants: Array<'opportunity' | 'problem'> = ['opportunity', 'problem'];
+      const variant = variants[Math.floor(Math.random() * variants.length)];
+      setEventData({
+        variant,
+        title: variant === 'opportunity' ? 'OPPORTUNITY' : 'PROBLEM',
+        message: variant === 'opportunity' ? 'You Get Big Client!' : 'Unexpected Issue Occurred',
+        description:
+          variant === 'opportunity'
+            ? 'A well-dressed stranger requests a full evaluation. Could boost your reputation.'
+            : 'One dental chair malfunctions during peak hours. Handle it quickly.',
+        choices:
+          variant === 'opportunity'
+            ? [
+                { id: 'service', label: 'Provide excellent service (normal rates)' },
+                { id: 'decline', label: 'Politely decline — too busy' },
+              ]
+            : [
+                { id: 'repair', label: 'Call urgent repair (-$200)' },
+                { id: 'improvise', label: 'Improvise for today (-5% reputation)' },
+              ],
+      });
+      setEventOpen(true);
+    }, 10000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Initialize / control background music
+  useEffect(() => {
+    if (musicEnabled) {
+      if (audioRef.current) {
+        audioRef.current.loop = true;
+        audioRef.current.volume = musicVolume;
+        audioRef.current.play().catch(() => {
+          // Autoplay blocked until user interacts
+        });
+      }
+    } else if (audioRef.current) {
+      audioRef.current.pause();
+    }
+  }, [musicEnabled]);
+
+  // React to volume changes
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = musicVolume;
+    }
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('bgm_volume', String(musicVolume));
+    }
+  }, [musicVolume]);
+
+  // Persist enabled flag
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('bgm_enabled', String(musicEnabled));
+    }
+  }, [musicEnabled]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-[#352A91] via-[#434CAF] to-[#352A91]">
+      <audio
+        ref={audioRef}
+        src="/music/background.mp3"
+        preload="auto"
+        loop
+        style={{ display: 'none' }}
+      />
       {/* Header */}
       <div className="bg-gray-900 border-b border-gray-700 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -261,13 +358,39 @@ export default function MainGameScreen({ selectedIndustry, onBack }: MainGameScr
                       <span>{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</span>
                     </button>
                   )}
-                  <button
-                    onClick={() => { /* music toggle placeholder */ setMenuOpen(false); }}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-white/10 text-purple-100"
-                  >
-                    <span className="text-lg">🎵</span>
-                    <span>Game Music(TODO)</span>
-                  </button>
+                  <div className="w-full px-1 py-1 rounded-md">
+                    <button
+                      onClick={() => {
+                        setMusicEnabled((v) => {
+                          const next = !v;
+                          if (next && audioRef.current) {
+                            audioRef.current.volume = musicVolume;
+                            audioRef.current.play().catch(() => {});
+                          }
+                          return next;
+                        });
+                      }}
+                      className="w-full flex items-center justify-between gap-2 px-2 py-2 rounded-md hover:bg-white/10 text-purple-100"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="text-lg">🎵</span>
+                        <span>Background Music</span>
+                      </span>
+                      <span className="text-sm font-semibold">{musicEnabled ? 'On' : 'Off'}</span>
+                    </button>
+                    <div className="mt-2 px-1">
+                      <input
+                        type="range"
+                        min={0}
+                        max={1}
+                        step={0.01}
+                        value={musicVolume}
+                        onChange={(e) => setMusicVolume(Number(e.target.value))}
+                        className="w-full"
+                        aria-label="Music volume"
+                      />
+                    </div>
+                  </div>
                   <div className="my-1 h-px bg-white/10" />
                   <button
                     onClick={() => { onBack(); setMenuOpen(false); }}
@@ -422,6 +545,18 @@ export default function MainGameScreen({ selectedIndustry, onBack }: MainGameScr
           </div>
         </div>
       </nav>
+
+      {/* Event Card Modal */}
+      <EventCard
+        open={eventOpen}
+        variant={eventData?.variant || 'opportunity'}
+        title={eventData?.title || ''}
+        message={eventData?.message}
+        description={eventData?.description || ''}
+        choices={eventData?.choices || []}
+        onSelect={() => setEventOpen(false)}
+        onClose={() => setEventOpen(false)}
+      />
     </div>
   );
 }
