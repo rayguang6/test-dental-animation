@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFullscreen } from '../hooks/useFullscreen';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 import EventCard from './EventCard';
 
 interface Industry {
@@ -227,18 +228,9 @@ export default function MainGameScreen({ selectedIndustry, onBack }: MainGameScr
   const [activeTab, setActiveTab] = useState<'people' | 'finance' | 'assets' | 'sales'>('finance');
   const [eventOpen, setEventOpen] = useState(false);
   const [eventData, setEventData] = useState<{ variant: 'opportunity' | 'problem'; title: string; message?: string; description: string; choices: { id: string; label: string }[] } | null>(null);
-  // Background music state
-  const [musicEnabled, setMusicEnabled] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return true;
-    const saved = window.localStorage.getItem('bgm_enabled');
-    return saved ? saved === 'true' : true; // default ON if no saved value
-  });
-  const [musicVolume, setMusicVolume] = useState<number>(() => {
-    if (typeof window === 'undefined') return 0.4;
-    const saved = window.localStorage.getItem('bgm_volume');
-    const v = saved ? Number(saved) : 0.4;
-    return Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0.4;
-  });
+  // Background music state - using proper localStorage hook
+  const [musicEnabled, setMusicEnabled] = useLocalStorage('bgm_enabled', true);
+  const [musicVolume, setMusicVolume] = useLocalStorage('bgm_volume', 0.4);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const week = 1;
   const phaseLabel = 'Phase 1 - Rat Race';
@@ -250,6 +242,7 @@ export default function MainGameScreen({ selectedIndustry, onBack }: MainGameScr
       default: return 'bg-gray-500';
     }
   };
+
 
   // Prototype: trigger a random event every 5s
   useEffect(() => {
@@ -318,17 +311,8 @@ export default function MainGameScreen({ selectedIndustry, onBack }: MainGameScr
     if (audioRef.current) {
       audioRef.current.volume = musicVolume;
     }
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem('bgm_volume', String(musicVolume));
-    }
   }, [musicVolume]);
 
-  // Persist enabled flag
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem('bgm_enabled', String(musicEnabled));
-    }
-  }, [musicEnabled]);
 
   // Cleanup on unmount
   useEffect(() => {
