@@ -8,7 +8,7 @@ export function useLocalStorage<T>(
   key: string,
   initialValue: T
 ): [T, (value: T | ((val: T) => T)) => void] {
-  // State to store our value
+  // Always start with initialValue to prevent hydration mismatch
   const [storedValue, setStoredValue] = useState<T>(initialValue);
   const [isHydrated, setIsHydrated] = useState(false);
 
@@ -17,7 +17,8 @@ export function useLocalStorage<T>(
     try {
       const item = window.localStorage.getItem(key);
       if (item !== null) {
-        setStoredValue(JSON.parse(item));
+        const parsedValue = JSON.parse(item);
+        setStoredValue(parsedValue);
       }
     } catch (error) {
       console.warn(`Error reading localStorage key "${key}":`, error);
